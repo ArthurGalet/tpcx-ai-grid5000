@@ -1,0 +1,588 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+/*******************************************************************************
+* Copyright (c) 2013, bankmark and/or its affiliates. All rights reserved. 
+* bankmark UG PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+*
+*
+******************************************************************************/
+-->
+<generation>
+
+  <property name="includeLabels" type="double">1</property>
+
+  <!-- DEFAULT Scheduler for all Tables, if no table specific scheduler is specified-->
+	<scheduler name="DefaultScheduler"></scheduler>
+
+	<output name="DummyOutput" />
+
+  <!-- Per table definitions -->
+  <schema name="default">
+		<tables>
+			<table name="customer">
+        <output name="SplitFileOutputWrapper">
+          <!-- IDs, features -->
+	        <output name="CSVRowOutput" active="${includeLabels} == 0.0 || ${includeLabels} >= 2.0" fieldIDs="0,1,2,3,4,5,6,7,8,9,10,11">
+		        <fileTemplate>outputDir + table.getName() + fileEnding</fileTemplate>
+		        <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+		        <fileEnding>.csv</fileEnding>
+		        <delimiter>,</delimiter>
+		        <charset>UTF-8</charset>
+		        <sortByRowID>true</sortByRowID>
+            <header>"\"c_customer_sk\",\"c_customer_id\",\"c_current_addr_sk\",\"c_first_name\",\"c_last_name\",\"c_preferred_cust_flag\",\"c_birth_day\",\"c_birth_month\",\"c_birth_year\",\"c_birth_country\",\"c_login\",\"c_email_address\"" + System.lineSeparator()
+            </header>
+	        </output>
+
+          <!-- IDs, features, and labels -->
+	        <output name="CSVRowOutput" active="${includeLabels} == 1" fieldIDs="0,1,2,3,4,5,6,7,8,9,10,11,12">
+		        <fileTemplate>outputDir + table.getName() + fileEnding</fileTemplate>
+		        <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+		        <fileEnding>.csv</fileEnding>
+		        <delimiter>,</delimiter>
+		        <charset>UTF-8</charset>
+		        <sortByRowID>true</sortByRowID>
+            <header>"\"c_customer_sk\",\"c_customer_id\",\"c_current_addr_sk\",\"c_first_name\",\"c_last_name\",\"c_preferred_cust_flag\",\"c_birth_day\",\"c_birth_month\",\"c_birth_year\",\"c_birth_country\",\"c_login\",\"c_email_address\",\"c_cluster_id\"" + System.lineSeparator()
+            </header>
+	        </output>
+
+          <!-- IDs and labels -->
+	        <output name="CSVRowOutput" active="${includeLabels} >= 2" fieldIDs="0,12">
+		        <fileTemplate>outputDir + table.getName() + "_labels" + fileEnding</fileTemplate>
+		        <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+		        <fileEnding>.csv</fileEnding>
+		        <delimiter>,</delimiter>
+		        <charset>UTF-8</charset>
+		        <sortByRowID>true</sortByRowID>
+            <header>"\"c_customer_sk\",\"c_cluster_id\"" + System.lineSeparator()
+            </header>
+	        </output>
+        </output>
+			</table>
+			<table name="order_returns">
+				<output name="MultiLineOutput">
+					<multilineFieldId>2</multilineFieldId>
+					<interleaveMultilines>false</interleaveMultilines>
+					<fileTemplate>outputDir + table.getName() + fileEnding</fileTemplate>
+					<outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+					<fileEnding>.csv</fileEnding>
+					<delimiter>,</delimiter>
+					<charset>UTF-8</charset>
+					<sortByRowID>true</sortByRowID>
+          <header>"\"or_order_id\",\"or_product_id\",\"or_return_quantity\"" + System.lineSeparator()</header>
+				</output>
+			</table>
+
+      <table name="CUSTOMER_IMAGES_META">
+        <output name="SplitFileOutputWrapper">
+          <!-- IDs and labels for scoring -->
+          <output name="CSVRowOutput" active="${includeLabels} >= 2">
+            <fileTemplate>outputDir + table.getName() + "_labels" + fileEnding</fileTemplate>
+            <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+            <fileEnding>.csv</fileEnding>
+            <delimiter>,</delimiter>
+            <quoteStrings>true</quoteStrings>
+            <charset>UTF-8</charset>
+            <sortByRowID>true</sortByRowID>
+            <header>"\"identity\",\"identity_serving\",\"sample\",\"img_filename\"" + System.lineSeparator()</header>
+          </output>
+          <!-- IDs and labels -->
+          <output name="CSVRowOutput" fieldIDs="1,2,3">
+            <fileTemplate>outputDir + table.getName() + fileEnding</fileTemplate>
+            <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+            <fileEnding>.csv</fileEnding>
+            <delimiter>,</delimiter>
+            <quoteStrings>true</quoteStrings>
+            <charset>UTF-8</charset>
+            <sortByRowID>true</sortByRowID>
+            <header>"\"identity_serving\",\"sample\",\"img_filename\"" + System.lineSeparator()</header>
+          </output>
+        </output>
+      </table>
+      <table name="CUSTOMER_IMAGES">
+        <output name="SplitFileOutputWrapper">
+          <!-- IDs and features for serving and scoring -->
+          <output name="DirectoryOutput" active="${includeLabels} >= 2 || ${includeLabels} == 0">
+            <fileTemplate>outputDir + java.io.File.separator + table.getName()</fileTemplate>
+      		        <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+            <dataField>image</dataField>
+            <directoryField>identity_serving</directoryField>
+            <filenameField>sample</filenameField>
+            <fileEnding>.png</fileEnding>
+      	  </output>
+          <!-- IDs, features, and labels for training -->
+          <output name="DirectoryOutput" active="${includeLabels} == 1">
+            <fileTemplate>outputDir + java.io.File.separator + table.getName()</fileTemplate>
+      		        <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+            <dataField>image</dataField>
+            <directoryField>identity</directoryField>
+            <filenameField>sample</filenameField>
+            <fileEnding>.png</fileEnding>
+      	        </output>
+        </output>
+      </table>
+      
+      <table name="marketplace">
+        <output name="SplitFileOutputWrapper">
+          <!-- IDs and labels -->
+          <output name="CSVRowOutput" fieldIDs="0,1" active="${includeLabels} >= 2">
+            <fileTemplate>outputDir + table.getName() + "_labels" + fileEnding</fileTemplate>
+            <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+            <fileEnding>.csv</fileEnding>
+            <delimiter>|</delimiter>
+            <quoteStrings>true</quoteStrings>
+            <charset>UTF-8</charset>
+            <sortByRowID>true</sortByRowID>
+            <header>"\"id\"|\"price\"" + System.lineSeparator()</header>
+          </output>
+          <!-- IDs and features -->
+          <output name="CSVRowOutput" fieldIDs="0,5" active="${includeLabels} >= 2 || ${includeLabels} == 0">
+            <fileTemplate>outputDir + table.getName() + fileEnding</fileTemplate>
+            <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+            <fileEnding>.csv</fileEnding>
+            <delimiter>|</delimiter>
+            <quoteStrings>true</quoteStrings>
+            <charset>UTF-8</charset>
+            <sortByRowID>true</sortByRowID>
+            <header>"\"id\"|\"description\"" + System.lineSeparator()</header>
+          </output>
+
+          <!-- IDs, features, and labels -->
+          <output name="CSVRowOutput" fieldIDs="0,1,5" active="${includeLabels} == 1">
+            <fileTemplate>outputDir + table.getName() + fileEnding</fileTemplate>
+            <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+            <fileEnding>.csv</fileEnding>
+            <delimiter>|</delimiter>
+            <quoteStrings>true</quoteStrings>
+            <charset>UTF-8</charset>
+            <sortByRowID>true</sortByRowID>
+            <header>"\"id\"|\"price\"|\"description\"" + System.lineSeparator()</header>
+          </output>
+        </output>
+      </table>
+
+      <table name="Review">
+        <output name="SplitFileOutputWrapper">
+          <!-- IDs and labels -->
+          <output name="CSVRowOutput" fieldIDs="0,1" active="${includeLabels} >= 2">
+            <fileTemplate>outputDir + table.getName() + "_labels" + fileEnding</fileTemplate>
+	          <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+	          <fileEnding>.psv</fileEnding>
+	          <delimiter>|</delimiter>
+	          <quoteStrings>false</quoteStrings>
+	          <quotationCharacter>"</quotationCharacter>
+	          <charset>UTF-8</charset>
+	          <sortByRowID>true</sortByRowID>
+            <header>"\"ID\"|\"spam\"" + System.lineSeparator()</header>
+          </output>
+
+          <!-- IDs and features -->
+          <output name="CSVRowOutput" fieldIDs="0,2" active="${includeLabels} >= 2 || ${includeLabels} == 0">
+            <fileTemplate>outputDir + table.getName() + fileEnding</fileTemplate>
+	          <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+	          <fileEnding>.psv</fileEnding>
+	          <delimiter>|</delimiter>
+	          <quoteStrings>false</quoteStrings>
+	          <quotationCharacter>"</quotationCharacter>
+	          <charset>UTF-8</charset>
+	          <sortByRowID>true</sortByRowID>
+            <header>"\"ID\"|\"text\"" + System.lineSeparator()</header>
+          </output>
+          <!-- IDs, features, and labels -->
+          <output name="CSVRowOutput" fieldIDs="0,1,2" active="${includeLabels} == 1">
+            <fileTemplate>outputDir + table.getName() + fileEnding</fileTemplate>
+	          <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+	          <fileEnding>.psv</fileEnding>
+	          <delimiter>|</delimiter>
+	          <quoteStrings>false</quoteStrings>
+	          <quotationCharacter>"</quotationCharacter>
+	          <charset>UTF-8</charset>
+	          <sortByRowID>true</sortByRowID>
+            <header>"\"ID\"|\"spam\"|\"text\"" + System.lineSeparator()</header>
+          </output>
+        </output>
+      </table>
+
+      <table name="ProductRating">
+        <output name="SplitFileOutputWrapper">
+          <!-- IDs and labels -->
+          <output name="MultiLineOutputWrapper" fieldIDs="0,5,6" active="${includeLabels} >= 2">
+            <multilineFieldId>1</multilineFieldId>
+            <output name="CSVRowOutput">
+              <fileTemplate>outputDir + table.getName() + "_labels" + fileEnding</fileTemplate>
+	            <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+	            <fileEnding>.csv</fileEnding>
+	            <delimiter>,</delimiter>
+	            <quoteStrings>false</quoteStrings>
+	            <quotationCharacter>"</quotationCharacter>
+	            <charset>UTF-8</charset>
+	            <sortByRowID>true</sortByRowID>
+              <header>"\"userID\",\"productID\",\"rating\"" + System.lineSeparator()</header>
+            </output>
+          </output>
+
+          <!-- IDs and features -->
+          <output name="MultiLineOutputWrapper" fieldIDs="0,4" active="${includeLabels} >= 2 || ${includeLabels} == 0">
+            <multilineFieldId>1</multilineFieldId>
+            <output name="CSVRowOutput">
+              <fileTemplate>outputDir + table.getName() + fileEnding</fileTemplate>
+	            <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+	            <fileEnding>.csv</fileEnding>
+	            <delimiter>,</delimiter>
+	            <quoteStrings>false</quoteStrings>
+	            <quotationCharacter>"</quotationCharacter>
+	            <charset>UTF-8</charset>
+	            <sortByRowID>true</sortByRowID>
+              <header>"\"userID\",\"productID\"" + System.lineSeparator()</header>
+            </output>
+          </output>
+          <!-- IDs, features, and labels -->
+          <output name="MultiLineOutputWrapper" fieldIDs="0,4,6" active="${includeLabels} == 1">
+            <multilineFieldId>1</multilineFieldId>
+            <output name="CSVRowOutput">
+              <fileTemplate>outputDir + table.getName() + fileEnding</fileTemplate>
+	            <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+	            <fileEnding>.csv</fileEnding>
+	            <delimiter>,</delimiter>
+	            <quoteStrings>false</quoteStrings>
+	            <quotationCharacter>"</quotationCharacter>
+	            <charset>UTF-8</charset>
+	            <sortByRowID>true</sortByRowID>
+              <header>"\"userID\",\"productID\",\"rating\"" + System.lineSeparator()</header>
+            </output>
+          </output>
+        </output>
+      </table>
+
+      <table name="CONVERSATION_AUDIO">
+        <output name="SplitOutputWrapper">
+          <!-- IDs and labels -->
+          <output name="CSVRowOutput" fieldIDs="2,3" active="${includeLabels} >= 2">
+            <fileTemplate>outputDir + table.getName() + "_labels" + fileEnding</fileTemplate>
+            <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+            <fileEnding>.csv</fileEnding>
+            <delimiter>|</delimiter>
+            <quoteStrings>true</quoteStrings>
+            <charset>UTF-8</charset>
+            <sortByRowID>true</sortByRowID>
+            <header>"wav_filename|transcript" + System.lineSeparator()</header>
+          </output>
+
+          <!-- IDs and features -->
+          <output name="SplitFileOutputWrapper" fieldIDs="0,1,2,3,5" active="${includeLabels} >= 2 || ${includeLabels} == 0">
+            <output name="DirectoryOutput" fieldIDs="0,1,5">
+              <fileTemplate>outputDir + java.io.File.separator + table.getName()</fileTemplate>
+      		    <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+              <dataField>audio</dataField>
+              <directoryField>dir</directoryField>
+              <filenameField>id</filenameField>
+              <fileEnding>.wav</fileEnding>
+            </output>
+            <output name="CSVRowOutput" fieldIDs="2">
+              <fileTemplate>outputDir + table.getName() + fileEnding</fileTemplate>
+              <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+              <fileEnding>.csv</fileEnding>
+              <delimiter>|</delimiter>
+              <quoteStrings>true</quoteStrings>
+              <charset>UTF-8</charset>
+              <sortByRowID>true</sortByRowID>
+              <header>"wav_filename" + System.lineSeparator()</header>
+            </output>
+          </output>
+          <!-- IDs, features, and labels  for training-->
+          <output name="SplitFileOutputWrapper" fieldIDs="0,1,2,3,5" active="${includeLabels} == 1">
+            <output name="DirectoryOutput" fieldIDs="0,1,5">
+              <fileTemplate>outputDir + java.io.File.separator + table.getName()</fileTemplate>
+      		    <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+              <dataField>audio</dataField>
+              <directoryField>dir</directoryField>
+              <filenameField>id</filenameField>
+              <fileEnding>.wav</fileEnding>
+            </output>
+            <output name="CSVRowOutput" fieldIDs="2,3">
+              <fileTemplate>outputDir + table.getName() + fileEnding</fileTemplate>
+              <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+              <fileEnding>.csv</fileEnding>
+              <delimiter>|</delimiter>
+              <quoteStrings>true</quoteStrings>
+              <charset>UTF-8</charset>
+              <sortByRowID>true</sortByRowID>
+              <header>"wav_filename|transcript" + System.lineSeparator()</header>
+            </output>
+          </output>
+        </output>
+      </table>
+
+      <table name="financial_account">
+        <output name="SplitFileOutputWrapper">
+	        <!-- IDs and transaction limits -->
+	        <output name="CSVRowOutput" fieldIDs="0,2">
+	          <fileTemplate>outputDir + table.getName() + fileEnding</fileTemplate>
+	          <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+	          <fileEnding>.csv</fileEnding>
+	          <delimiter>,</delimiter>
+	          <quoteStrings>true</quoteStrings>
+	          <charset>UTF-8</charset>
+	          <sortByRowID>true</sortByRowID>
+	          <header>"fa_customer_sk,transaction_limit" + System.lineSeparator()</header>
+	        </output>
+	      </output>
+      </table>
+
+      <table name="financial_transactions">
+        <output name="SplitFileOutputWrapper">
+	        
+	        <!-- IDs, features, and labels -->
+	        <output name="CSVRowOutput" fieldIDs="0,1,2,3,4,5,6" active="${includeLabels} == 1">
+	          <fileTemplate>outputDir + table.getName() + fileEnding</fileTemplate>
+	          <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+	          <fileEnding>.csv</fileEnding>
+	          <delimiter>,</delimiter>
+	          <quoteStrings>true</quoteStrings>
+	          <charset>UTF-8</charset>
+	          <sortByRowID>true</sortByRowID>
+	          <header>"amount,IBAN,senderID,receiverID,transactionID,isFraud,time" + System.lineSeparator()</header>
+	        </output>
+
+	        <!-- IDs and features -->
+          <output name="CSVRowOutput" fieldIDs="0,1,2,3,4,6" active="${includeLabels} >= 2 || ${includeLabels} == 0">
+            <fileTemplate>outputDir + table.getName() + fileEnding</fileTemplate>
+            <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+            <fileEnding>.csv</fileEnding>
+            <delimiter>,</delimiter>
+            <quoteStrings>true</quoteStrings>
+            <charset>UTF-8</charset>
+            <sortByRowID>true</sortByRowID>
+            <header>"amount,IBAN,senderID,receiverID,transactionID,time" + System.lineSeparator()</header>
+          </output>
+	        
+	        <!-- <!-\- IDs and labels -\-> -->
+	        <output name="CSVRowOutput" fieldIDs="4,5" active="${includeLabels} >= 2">
+	          <fileTemplate>outputDir + table.getName()+ "_labels" + fileEnding</fileTemplate>
+	          <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+	          <fileEnding>.csv</fileEnding>
+	          <delimiter>,</delimiter>
+	          <quoteStrings>true</quoteStrings>
+	          <charset>UTF-8</charset>
+	          <sortByRowID>true</sortByRowID>
+	          <header>"transactionID,isFraud" + System.lineSeparator()</header>
+	        </output>
+	      </output>
+      </table>
+      <table name="sales_tmp">
+        <output name="CompiledTemplateOutput" active="${includeLabels} >= 2 || ${includeLabels} == 0"> 
+		      <fileTemplate>outputDir + "sales" + fileEnding</fileTemplate>
+		      <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+		      <fileEnding>.csv</fileEnding>
+		      <delimiter>,</delimiter>
+		      <!-- <quoteStrings>true</quoteStrings> -->
+		      <!-- <quotationCharacter>"</quotationCharacter> -->
+		      <charset>UTF-8</charset>
+		      <sortByRowID>true</sortByRowID>
+          <header>
+            <![CDATA[
+                     "";
+                     try {
+                     StringBuilder sb = new StringBuilder();
+                     pdgf.core.schemaElements.Field[] fields = table.getFields();
+                     boolean includeLabels = table.getProject().getXMLProperty("includeLabels") > 0.0;
+                     for (int i = 0; i < fields.length; i++) {
+                     if (fields[i].getName().endsWith("_tmp")) {
+                     continue;
+                     }
+                     sb.append(fields[i].getName()).append(",");
+                     }
+                     sb.setLength(sb.length() - 1); // remove last delimiter
+                     sb.append("\n");
+                     result= sb.toString();
+                     } catch (pdgf.common.util.xml.XmlException e) {
+                     e.printStackTrace();
+                     }
+            ]]>
+          </header>
+          <footer><!--""--></footer>
+		      <template><!--
+                        StringBuilder sb = new StringBuilder();
+                        for (int i = 0; i < fields.length; i++) {
+                        if (fields[i].getField().getName().endsWith("_tmp")) {
+                        continue;
+                        }
+
+String s = fields[i].toString();
+
+boolean addQuotesForTextType = pdgf.util.StaticHelper.needSingleQuote(fields[i].getSQLType());
+if (addQuotesForTextType) {
+sb.append('"');		//String Quotation char
+sb.append(s);
+sb.append('"');		//String Quotation char
+} else {
+sb.append(s);
+}
+sb.append(",");
+}
+sb.setLength(sb.length() - 1); // remove last delimiter
+sb.append("\n");
+buffer.append(sb);
+                    -->
+          </template>
+
+	      </output>
+      </table>
+
+      <table name="order">
+        <output name="SplitFileOutputWrapper">
+          <!-- IDs and features -->
+          <output name="CSVRowOutput" fieldIDs="1,0,6,8,3" active="${includeLabels} >= 2 || ${includeLabels} == 0">
+            <fileTemplate>outputDir + table.getName() + fileEnding</fileTemplate>
+            <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+            <fileEnding>.csv</fileEnding>
+            <delimiter>,</delimiter>
+            <quoteStrings>true</quoteStrings>
+            <charset>UTF-8</charset>
+            <sortByRowID>true</sortByRowID>
+            <header>"o_order_id,o_customer_sk,weekday,date,store" + System.lineSeparator()</header>
+          </output>
+
+          <!-- IDs, features, and labels -->
+          <output name="CSVRowOutput" fieldIDs="1,0,6,8,3,4" active="${includeLabels} == 1">
+            <fileTemplate>outputDir + table.getName() + fileEnding</fileTemplate>
+            <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+            <fileEnding>.csv</fileEnding>
+            <delimiter>,</delimiter>
+            <quoteStrings>true</quoteStrings>
+            <charset>UTF-8</charset>
+            <sortByRowID>true</sortByRowID>
+            <header>"o_order_id,o_customer_sk,weekday,date,store,trip_type" + System.lineSeparator()</header>
+          </output>
+
+          <!-- labels only -->
+          <output name="CSVRowOutput" fieldIDs="1,4" active="${includeLabels} == 2">
+            <fileTemplate>outputDir + table.getName() + "_labels" + fileEnding</fileTemplate>
+            <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+            <fileEnding>.csv</fileEnding>
+            <delimiter>,</delimiter>
+            <quoteStrings>true</quoteStrings>
+            <charset>UTF-8</charset>
+            <sortByRowID>true</sortByRowID>
+            <header>"o_order_id,trip_type" + System.lineSeparator()</header>
+          </output>
+          
+        </output>
+      </table>
+
+      <table name="lineitem">
+        <output name="SplitFileOutputWrapper">
+          <output name="MultiLineOutputWrapper" fieldIDs="0,1,2,3">
+            <multilineFieldId>2</multilineFieldId>
+            <output name="CSVRowOutput">
+              <fileTemplate>outputDir + table.getName() + fileEnding</fileTemplate>
+              <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+              <fileEnding>.csv</fileEnding>
+              <delimiter>,</delimiter>
+              <quoteStrings>true</quoteStrings>
+              <charset>UTF-8</charset>
+              <sortByRowID>true</sortByRowID>
+              <header>"li_order_id,li_product_id,quantity,price" + System.lineSeparator()</header>
+            </output>
+          </output>
+        </output>
+      </table>
+
+      <table name="product">
+        <output name="SplitFileOutputWrapper">
+          <output name="CSVRowOutput" fieldIDs="0,1,3">
+            <fileTemplate>outputDir + table.getName() + fileEnding</fileTemplate>
+            <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+            <fileEnding>.csv</fileEnding>
+            <delimiter>,</delimiter>
+            <quoteStrings>true</quoteStrings>
+            <charset>UTF-8</charset>
+            <sortByRowID>true</sortByRowID>
+            <header>"p_product_id,name,department" + System.lineSeparator()</header>
+          </output>
+        </output>
+      </table>
+
+      <table name="store_dept">
+        <output name="SplitFileOutputWrapper" >
+          <output name="CSVRowOutput" fieldIDs="0,1,2" active="${includeLabels} >= 2 || ${includeLabels} == 0">
+            <fileTemplate>outputDir + table.getName() + fileEnding</fileTemplate>
+            <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+            <fileEnding>.csv</fileEnding>
+            <delimiter>,</delimiter>
+            <quoteStrings>true</quoteStrings>
+            <charset>UTF-8</charset>
+            <sortByRowID>true</sortByRowID>
+            <header>"store,department,periods" + System.lineSeparator()</header>
+          </output>
+
+          <output name="CSVRowOutput" fieldIDs="0,1" active="${includeLabels} == 1">
+            <fileTemplate>outputDir + table.getName() + fileEnding</fileTemplate>
+            <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+            <fileEnding>.csv</fileEnding>
+            <delimiter>,</delimiter>
+            <quoteStrings>true</quoteStrings>
+            <charset>UTF-8</charset>
+            <sortByRowID>true</sortByRowID>
+            <header>"store,department" + System.lineSeparator()</header>
+          </output>
+        </output>
+      </table>
+
+      <table name="order_weekly_sales">
+        <output name="SplitFileOutputWrapper" active="${includeLabels} >= 2">
+          <output name="CSVRowOutput" fieldIDs="0,1,4,5">
+            <fileTemplate>outputDir + "store_dept_labels" + fileEnding</fileTemplate>
+            <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+            <fileEnding>.csv</fileEnding>
+            <delimiter>,</delimiter>
+            <quoteStrings>true</quoteStrings>
+            <charset>UTF-8</charset>
+            <sortByRowID>true</sortByRowID>
+            <header>"store,department,date,weekly_sales" + System.lineSeparator()</header>
+          </output>
+        </output>
+      </table>
+
+      <table name="failures">
+        <output name="SplitFileOutputWrapper">
+          <!-- IDs and labels -->
+          <output name="CSVRowOutput" fieldIDs="2,3,4,5" active="${includeLabels} >= 2">
+            <fileTemplate>outputDir + table.getName() + "_labels" + fileEnding</fileTemplate>
+            <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+            <fileEnding>.csv</fileEnding>
+            <delimiter>,</delimiter>
+            <quoteStrings>true</quoteStrings>
+            <charset>UTF-8</charset>
+            <sortByRowID>true</sortByRowID>
+            <header>"date,serial_number,model,failure" + System.lineSeparator()</header>
+          </output>
+          <!-- IDs and features -->
+          <output name="CSVRowOutput" fieldIDs="2,3,4,6,7,8,9,10,11,12" active="${includeLabels} >= 2 || ${includeLabels} == 0">
+            <fileTemplate>outputDir + table.getName() + fileEnding</fileTemplate>
+            <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+            <fileEnding>.csv</fileEnding>
+            <delimiter>,</delimiter>
+            <quoteStrings>true</quoteStrings>
+            <charset>UTF-8</charset>
+            <sortByRowID>true</sortByRowID>
+            <header>"date,serial_number,model,smart_5_raw,smart_10_raw,smart_184_raw,smart_187_raw,smart_188_raw,smart_197_raw,smart_198_raw" + System.lineSeparator()</header>
+          </output>
+
+          <!-- IDs, features, and labels -->
+          <output name="CSVRowOutput" fieldIDs="2,3,4,5,6,7,8,9,10,11,12" active="${includeLabels} == 1">
+            <fileTemplate>outputDir + table.getName() + fileEnding</fileTemplate>
+            <outputDir>hdfs://namenode-g5k:9000/user/agalet/output/</outputDir>
+            <fileEnding>.csv</fileEnding>
+            <delimiter>,</delimiter>
+            <quoteStrings>true</quoteStrings>
+            <charset>UTF-8</charset>
+            <sortByRowID>true</sortByRowID>
+            <header>"date,serial_number,model,failure,smart_5_raw,smart_10_raw,smart_184_raw,smart_187_raw,smart_188_raw,smart_197_raw,smart_198_raw" + System.lineSeparator()</header>
+          </output>
+        </output>
+      </table>
+		</tables>
+	</schema>
+
+</generation>
